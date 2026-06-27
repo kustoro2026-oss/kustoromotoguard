@@ -10,17 +10,23 @@ RUN npx vite build
 FROM node:20-alpine AS backend-builder
 WORKDIR /app
 COPY packages/backend/package.json ./
-RUN npm install --omit=dev
+RUN npm install
 COPY packages/backend/tsconfig.json ./
 COPY packages/backend/src ./src/
 RUN npx tsc
 
+# Stage 2b: Production deps only
+FROM node:20-alpine AS backend-deps
+WORKDIR /app
+COPY packages/backend/package.json ./
+RUN npm install --omit=dev
+
 # Stage 3: Production
 FROM node:20-alpine
 WORKDIR /app
-COPY --from=backend-builder /app/node_modules ./node_modules
+COPY --from=backend-deps /app/node_modules ./node_modules
 COPY --from=backend-builder /app/package.json ./package.json
 COPY --from=backend-builder /app/dist ./dist
 COPY --from=frontend-builder /app/dist ./public
 EXPOSE 3000
-CMD node dist/db/migrate.js && node dist/index.js
+CMD ["sh", "-c", "node dist/db/migrate.js && node dist/index.js"]
