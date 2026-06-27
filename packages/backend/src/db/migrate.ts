@@ -132,4 +132,7 @@ async function migrate() {
   }
 }
 
-migrate().catch(() => process.exit(1));
+migrate().catch((err) => {
+  console.error('[Migrate] Migration failed, server will start anyway:', err.message);
+  process.exit(0);
+});

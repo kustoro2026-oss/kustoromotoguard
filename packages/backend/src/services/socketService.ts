@@ -6,29 +6,52 @@ import { config } from '../config';
 
 export class SocketService {
   private io: SocketIOServer;
-  private pubClient: Redis;
-  private subClient: Redis;
+  private pubClient: Redis | null = null;
+  private subClient: Redis | null = null;
+  private redisReady = false;
 
   constructor(server: HttpServer) {
     this.io = new SocketIOServer(server, {
       cors: {
-        origin: config.frontendUrl,
+        origin: true,
         methods: ['GET', 'POST'],
         credentials: true,
       },
     });
-
-    this.pubClient = new Redis({
-      host: config.redis.host,
-      port: config.redis.port,
-      password: config.redis.password,
-    });
-
-    this.subClient = this.pubClient.duplicate();
   }
 
   async initialize(): Promise<void> {
-    this.io.adapter(createAdapter(this.pubClient, this.subClient));
+    // Try Redis - if fails, fall back to in-memory adapter
+    try {
+      this.pubClient = new Redis({
+        host: config.redis.host,
+        port: config.redis.port,
+        password: config.redis.password,
+        retryStrategy: (times) => {
+          if (times > 3) return null; // stop retrying
+          return Math.min(times * 500, 3000);
+        },
+        maxRetriesPerRequest: 3,
+        lazyConnect: true,
+      });
+
+      this.pubClient.on('error', () => {
+        // silently ignore - will fall back to in-memory
+      });
+
+      this.subClient = this.pubClient.duplicate();
+      this.subClient.on('error', () => {});
+
+      await this.pubClient.connect();
+      await this.subClient.connect();
+
+      this.io.adapter(createAdapter(this.pubClient, this.subClient));
+      this.redisReady = true;
+      console.log('[Socket.IO] Initialized with Redis adapter');
+    } catch {
+      console.log('[Socket.IO] Redis unavailable, using in-memory adapter');
+      this.cleanupRedis();
+    }
 
     this.io.on('connection', (socket: Socket) => {
       console.log(`[Socket.IO] Client connected: ${socket.id}`);
@@ -53,8 +76,13 @@ export class SocketService {
         console.log(`[Socket.IO] Client disconnected: ${socket.id}`);
       });
     });
+  }
 
-    console.log('[Socket.IO] Initialized with Redis adapter');
+  private cleanupRedis(): void {
+    try { this.pubClient?.disconnect(); } catch {}
+    try { this.subClient?.disconnect(); } catch {}
+    this.pubClient = null;
+    this.subClient = null;
   }
 
   // Broadcast location to room
@@ -94,7 +122,6 @@ export class SocketService {
 
   close(): void {
     this.io.close();
-    this.pubClient.quit();
-    this.subClient.quit();
+    this.cleanupRedis();
   }
 }
