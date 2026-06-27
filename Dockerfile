@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/backend/package.json ./packages/backend/
 COPY packages/frontend/package.json ./packages/frontend/
+COPY packages/simulator/package.json ./packages/simulator/
 
 # Install all dependencies (workspaces auto-linked)
 RUN npm ci
