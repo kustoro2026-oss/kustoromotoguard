@@ -2,6 +2,14 @@ import { Router, Response } from 'express';
 import { query } from '../db';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 
+function handleDbError(err: any, res: Response): void {
+  if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND') {
+    res.status(503).json({ error: 'Database not available. Please add PostgreSQL plugin in Railway.' });
+    return;
+  }
+  res.status(500).json({ error: 'Internal server error' });
+}
+
 const router = Router();
 
 // GET /api/alerts - List alerts with filters
@@ -40,7 +48,7 @@ router.get('/', authMiddleware, async (req: AuthRequest, res: Response): Promise
     res.json({ alerts: result.rows });
   } catch (err) {
     console.error('[Alerts] List error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    handleDbError(err, res);
   }
 });
 
@@ -57,7 +65,7 @@ router.put('/:id/read', authMiddleware, async (req: AuthRequest, res: Response):
     res.json({ message: 'Alert marked as read' });
   } catch (err) {
     console.error('[Alerts] Mark read error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    handleDbError(err, res);
   }
 });
 

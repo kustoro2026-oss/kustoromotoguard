@@ -49,8 +49,12 @@ router.post('/login', async (req, res): Promise<void> => {
         role: user.role,
       },
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error('[Auth] Login error:', err);
+    if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND') {
+      res.status(503).json({ error: 'Database not available. Please add PostgreSQL plugin in Railway.' });
+      return;
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });

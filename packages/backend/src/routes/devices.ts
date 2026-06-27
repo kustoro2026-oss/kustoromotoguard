@@ -3,6 +3,14 @@ import { query } from '../db';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { v4 as uuidv4 } from 'uuid';
 
+function handleDbError(err: any, res: Response): void {
+  if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND') {
+    res.status(503).json({ error: 'Database not available. Please add PostgreSQL plugin in Railway.' });
+    return;
+  }
+  res.status(500).json({ error: 'Internal server error' });
+}
+
 const router = Router();
 
 // GET /api/devices - List all devices
@@ -17,7 +25,7 @@ router.get('/', authMiddleware, async (_req: AuthRequest, res: Response): Promis
     res.json({ devices: result.rows });
   } catch (err) {
     console.error('[Devices] List error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    handleDbError(err, res);
   }
 });
 
@@ -65,7 +73,7 @@ router.get('/:id', authMiddleware, async (req: AuthRequest, res: Response): Prom
     });
   } catch (err) {
     console.error('[Devices] Detail error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    handleDbError(err, res);
   }
 });
 
@@ -99,7 +107,7 @@ router.get('/:id/locations', authMiddleware, async (req: AuthRequest, res: Respo
     res.json({ locations: result.rows });
   } catch (err) {
     console.error('[Devices] Locations error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    handleDbError(err, res);
   }
 });
 
@@ -133,7 +141,7 @@ router.get('/:id/sensors', authMiddleware, async (req: AuthRequest, res: Respons
     res.json({ sensors: result.rows });
   } catch (err) {
     console.error('[Devices] Sensors error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    handleDbError(err, res);
   }
 });
 
@@ -154,7 +162,7 @@ router.get('/:id/audio', authMiddleware, async (req: AuthRequest, res: Response)
     res.json({ recordings: result.rows });
   } catch (err) {
     console.error('[Devices] Audio list error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    handleDbError(err, res);
   }
 });
 
@@ -179,7 +187,7 @@ router.post('/:id/audio/record', authMiddleware, async (req: AuthRequest, res: R
     });
   } catch (err) {
     console.error('[Devices] Audio record error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    handleDbError(err, res);
   }
 });
 
