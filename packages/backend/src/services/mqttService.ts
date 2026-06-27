@@ -24,6 +24,11 @@ export class MqttService {
   }
 
   async connect(): Promise<void> {
+    if (!config.mqtt.brokerUrl) {
+      console.log('[MQTT] No broker URL configured, skipping MQTT');
+      return;
+    }
+
     const options: mqtt.IClientOptions = {
       clientId: `${config.mqtt.clientId}-${Date.now()}`,
       clean: true,

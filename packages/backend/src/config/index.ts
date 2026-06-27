@@ -49,7 +49,7 @@ export const config = {
   nodeEnv: process.env.NODE_ENV || 'development',
 
   mqtt: {
-    brokerUrl: process.env.MQTT_BROKER_URL || 'mqtt://localhost:1883',
+    brokerUrl: process.env.MQTT_BROKER_URL || '',
     clientId: process.env.MQTT_CLIENT_ID || 'kustoro-backend',
     username: process.env.MQTT_USERNAME || '',
     password: process.env.MQTT_PASSWORD || '',
