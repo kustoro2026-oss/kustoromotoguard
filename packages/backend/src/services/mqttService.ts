@@ -131,13 +131,20 @@ export class MqttService {
         [deviceId]
       );
 
-      // Push to WebSocket
+      // Push location + status to WebSocket
       this.socketService.emitLocation(deviceId, {
         device_id: deviceId,
         latitude: payload.latitude,
         longitude: payload.longitude,
         speed: payload.speed,
         heading: payload.heading,
+        timestamp: payload.timestamp,
+      });
+
+      // Also emit status so frontend sidebar updates immediately
+      this.socketService.emitStatus(deviceId, {
+        device_id: deviceId,
+        status: 'online',
         timestamp: payload.timestamp,
       });
     } catch (err) {

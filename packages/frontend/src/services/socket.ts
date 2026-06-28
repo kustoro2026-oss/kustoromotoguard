@@ -19,6 +19,8 @@ export function connectSocket(): Socket {
 
   socket.on('device:location', (data) => {
     useDeviceStore.getState().updateLocation(data);
+    // Also mark device as online when location data arrives
+    useDeviceStore.getState().updateDeviceStatus(data.device_id, 'online');
   });
 
   socket.on('device:sensors', (data) => {

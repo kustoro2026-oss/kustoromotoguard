@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { api } from '../services/api';
 import { connectSocket, subscribeToFleet } from '../services/socket';
@@ -65,12 +65,35 @@ export default function DashboardPage() {
   const logout = useAuthStore((s) => s.logout);
   const user = useAuthStore((s) => s.user);
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
   const unreadAlerts = alerts.filter((a) => !a.is_read).length;
+  const onlineCount = devices.filter((d) => d.status === 'online').length;
 
   useEffect(() => {
-    // Fetch devices
-    api.getDevices().then((data) => setDevices(data.devices));
-    api.getAlerts().then((data) => setAlerts(data.alerts));
+    let cancelled = false;
+
+    async function load() {
+      try {
+        setLoading(true);
+        setError('');
+        const [devData, alertData] = await Promise.all([
+          api.getDevices(),
+          api.getAlerts(),
+        ]);
+        if (!cancelled) {
+          setDevices(devData.devices);
+          setAlerts(alertData.alerts);
+        }
+      } catch (err: any) {
+        if (!cancelled) setError(err.message || 'Failed to load data');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
 
     // Connect WebSocket
     connectSocket();
@@ -80,6 +103,8 @@ export default function DashboardPage() {
     if (Notification.permission === 'default') {
       Notification.requestPermission();
     }
+
+    return () => { cancelled = true; };
   }, [setDevices, setAlerts]);
 
   function handleLogout() {
@@ -124,9 +149,33 @@ export default function DashboardPage() {
         {/* Device List Sidebar */}
         <aside className="w-72 bg-gray-900 border-r border-gray-800 overflow-y-auto shrink-0">
           <div className="p-4">
-            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
-              Vehicles ({devices.length})
+            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">
+              Vehicles
             </h2>
+            <p className="text-xs text-gray-500 mb-3">
+              {onlineCount}/{devices.length} online
+            </p>
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-3">
+                <p className="text-red-400 text-xs">{error}</p>
+              </div>
+            )}
+            {loading && (
+              <div className="flex items-center gap-2 text-gray-500 text-xs mb-3">
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-500" />
+                Loading devices...
+              </div>
+            )}
+            {!loading && !error && devices.length === 0 && (
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mb-3">
+                <p className="text-yellow-400 text-xs">
+                  No devices found. Run the migration first:
+                  <code className="block mt-1 bg-gray-800 px-2 py-1 rounded text-yellow-300">
+                    npm run db:migrate
+                  </code>
+                </p>
+              </div>
+            )}
             <div className="space-y-1">
               {devices.map((device) => {
                 const loc = locations[device.id];
@@ -157,8 +206,10 @@ export default function DashboardPage() {
                   </button>
                 );
               })}
-              {devices.length === 0 && (
-                <p className="text-sm text-gray-500 p-3">No devices found</p>
+              {!loading && devices.length > 0 && locations && Object.keys(locations).length === 0 && (
+                <p className="text-sm text-gray-500 p-3">
+                  Waiting for live data from devices...
+                </p>
               )}
             </div>
           </div>
@@ -179,6 +230,21 @@ export default function DashboardPage() {
             <DeviceTrails locations={locations} />
             <FitBounds devices={devices} locations={locations} />
           </MapContainer>
+
+          {/* Overlay when no live data */}
+          {!loading && devices.length > 0 && Object.keys(locations).length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1000]">
+              <div className="bg-gray-900/90 backdrop-blur rounded-xl px-6 py-4 border border-gray-700 text-center">
+                <p className="text-white font-medium mb-1">No live data yet</p>
+                <p className="text-gray-400 text-sm">
+                  Start the simulator to see devices moving:
+                </p>
+                <code className="block mt-2 bg-gray-800 px-3 py-1.5 rounded text-green-400 text-xs">
+                  docker compose up -d &amp;&amp; npm run dev:simulator
+                </code>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>
