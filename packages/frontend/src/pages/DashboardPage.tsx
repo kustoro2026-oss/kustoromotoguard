@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -10,32 +10,77 @@ import SearchControl from '../components/map/SearchControl';
 import LocateControl from '../components/map/LocateControl';
 import RoutingPanel from '../components/map/RoutingPanel';
 
-// Custom marker icons
-const onlineIcon = new L.DivIcon({
-  className: '',
-  html: '<div style="width:14px;height:14px;background:#22c55e;border:2px solid white;border-radius:50%;box-shadow:0 0 8px #22c55e80"></div>',
-  iconSize: [14, 14],
-  iconAnchor: [7, 7],
+// Compact motorcycle SVG icon for online devices
+const motoOnlineSvg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none">
+  <circle cx="12" cy="12" r="10" fill="#22c55e" opacity="0.2" stroke="#22c55e" stroke-width="1.5"/>
+  <circle cx="7" cy="15" r="2.2" fill="#22c55e" stroke="#fff" stroke-width="0.8"/>
+  <circle cx="17" cy="15" r="2.2" fill="#22c55e" stroke="#fff" stroke-width="0.8"/>
+  <path d="M4.5 14l1.8-3h2.2l1.2 3h4.6" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M12 12v-2.5h3" stroke="#22c55e" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="12" cy="12" r="1.5" fill="#22c55e"/>
+</svg>`;
+
+// Gray motorcycle SVG icon for offline devices
+const motoOfflineSvg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none">
+  <circle cx="12" cy="12" r="10" fill="#6b7280" opacity="0.15" stroke="#6b7280" stroke-width="1.5"/>
+  <circle cx="7" cy="15" r="2.2" fill="#6b7280" stroke="#fff" stroke-width="0.8"/>
+  <circle cx="17" cy="15" r="2.2" fill="#6b7280" stroke="#fff" stroke-width="0.8"/>
+  <path d="M4.5 14l1.8-3h2.2l1.2 3h4.6" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M12 12v-2.5h3" stroke="#6b7280" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="12" cy="12" r="1.5" fill="#6b7280"/>
+</svg>`;
+
+const motoOnlineIcon = new L.DivIcon({
+  className: 'moto-marker-icon',
+  html: motoOnlineSvg,
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+  popupAnchor: [0, -14],
 });
 
-const offlineIcon = new L.DivIcon({
-  className: '',
-  html: '<div style="width:14px;height:14px;background:#ef4444;border:2px solid white;border-radius:50%"></div>',
-  iconSize: [14, 14],
-  iconAnchor: [7, 7],
+const motoOfflineIcon = new L.DivIcon({
+  className: 'moto-marker-icon',
+  html: motoOfflineSvg,
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+  popupAnchor: [0, -14],
 });
 
-// Auto-fit map to markers
+// Auto-fit map to fleet — runs ONCE on initial load, then stops.
+// User interactions (drag, zoom, search, locate) disable further auto-fitting.
 function FitBounds({ devices, locations }: { devices: Device[]; locations: Record<string, DeviceLocation> }) {
   const map = useMap();
+  const hasFitted = useRef(false);
+  const lockedByUser = useRef(false);
+
+  // Watch for ANY user-triggered map movement (drag, zoom, flyTo from search/locate)
   useEffect(() => {
+    const lock = () => { lockedByUser.current = true; };
+    map.on('dragstart', lock);
+    map.on('zoomstart', lock);
+    return () => {
+      map.off('dragstart', lock);
+      map.off('zoomstart', lock);
+    };
+  }, [map]);
+
+  useEffect(() => {
+    // Only auto-fit ONCE when fleet data first arrives and user hasn't touched the map
+    if (hasFitted.current || lockedByUser.current) return;
+
     const bounds = L.latLngBounds([]);
     devices.forEach((d) => {
       const loc = locations[d.id];
       if (loc) bounds.extend([loc.latitude, loc.longitude]);
     });
-    if (bounds.isValid()) map.fitBounds(bounds, { padding: [50, 50] });
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [50, 50], animate: false });
+      hasFitted.current = true;
+    }
   }, [map, devices, locations]);
+
   return null;
 }
 
@@ -44,7 +89,7 @@ function DeviceTrails({ locations }: { locations: Record<string, DeviceLocation>
   return (
     <>
       {Object.entries(locations).map(([id, loc]) => (
-        <Marker key={id} position={[loc.latitude, loc.longitude]} icon={onlineIcon}>
+        <Marker key={id} position={[loc.latitude, loc.longitude]} icon={motoOnlineIcon}>
           <Popup>
             <div className="text-sm text-gray-900">
               <strong>ID:</strong> {id.slice(0, 8)}...<br />

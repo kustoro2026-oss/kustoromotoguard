@@ -462,3 +462,9 @@ body {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* Motorcycle marker icons — prevent Leaflet default chrome */
+.moto-marker-icon {
+  background: transparent !important;
+  border: none !important;
+}

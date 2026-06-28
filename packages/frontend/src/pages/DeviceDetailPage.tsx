@@ -22,10 +22,18 @@ import { useAuthStore } from '../store/authStore';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler);
 
 const markerIcon = new L.DivIcon({
-  className: '',
-  html: '<div style="width:20px;height:20px;background:#3b82f6;border:3px solid white;border-radius:50%;box-shadow:0 0 12px #3b82f680;position:relative"><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;background:white;border-radius:50%"></div></div>',
-  iconSize: [20, 20],
-  iconAnchor: [10, 10],
+  className: 'moto-marker-icon',
+  html: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="10" fill="#3b82f6" opacity="0.2" stroke="#3b82f6" stroke-width="1.5"/>
+    <circle cx="7" cy="15" r="2.2" fill="#3b82f6" stroke="#fff" stroke-width="0.8"/>
+    <circle cx="17" cy="15" r="2.2" fill="#3b82f6" stroke="#fff" stroke-width="0.8"/>
+    <path d="M4.5 14l1.8-3h2.2l1.2 3h4.6" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M12 12v-2.5h3" stroke="#3b82f6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="12" cy="12" r="1.5" fill="#3b82f6"/>
+  </svg>`,
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+  popupAnchor: [0, -16],
 });
 
 function SpeedGauge({ value, max = 120 }: { value: number; max?: number }) {
