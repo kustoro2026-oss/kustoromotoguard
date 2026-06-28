@@ -85,11 +85,11 @@ INSERT INTO users (email, password_hash, role) VALUES
     ('admin@kustoro.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'admin')
 ON CONFLICT (email) DO NOTHING;
 
--- Insert seed data: demo devices
-INSERT INTO devices (name, plate_number, device_token, vehicle_type) VALUES
-    ('Motor Alpha', 'B 1234 ABC', 'dev-token-alpha-001', 'Honda Vario 150'),
-    ('Motor Bravo', 'B 2345 BCD', 'dev-token-bravo-002', 'Yamaha NMAX'),
-    ('Motor Charlie', 'B 3456 CDE', 'dev-token-charlie-003', 'Honda Beat'),
-    ('Motor Delta', 'B 4567 DEF', 'dev-token-delta-004', 'Yamaha Mio'),
-    ('Motor Echo', 'B 5678 EFG', 'dev-token-echo-005', 'Honda PCX')
-ON CONFLICT (device_token) DO NOTHING;
+-- Insert seed data: devices with fixed UUIDs (matching simulator's hardcoded IDs)
+INSERT INTO devices (id, name, plate_number, device_token, vehicle_type) VALUES
+    ('550e8400-e29b-41d4-a716-446655440001', 'Motor Alpha',   'B 1234 ABC', 'dev-token-alpha-001',   'Honda Vario 150'),
+    ('550e8400-e29b-41d4-a716-446655440002', 'Motor Bravo',   'B 2345 BCD', 'dev-token-bravo-002',   'Yamaha NMAX'),
+    ('550e8400-e29b-41d4-a716-446655440003', 'Motor Charlie', 'B 3456 CDE', 'dev-token-charlie-003', 'Honda Beat'),
+    ('550e8400-e29b-41d4-a716-446655440004', 'Motor Delta',   'B 4567 DEF', 'dev-token-delta-004',   'Yamaha Mio'),
+    ('550e8400-e29b-41d4-a716-446655440005', 'Motor Echo',    'B 5678 EFG', 'dev-token-echo-005',    'Honda PCX')
+ON CONFLICT (device_token) DO UPDATE SET id = EXCLUDED.id;

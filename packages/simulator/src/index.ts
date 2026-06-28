@@ -2,7 +2,7 @@ import mqtt from 'mqtt';
 import { v4 as uuidv4 } from 'uuid';
 
 // ─── Configuration ───
-const BROKER_URL = 'mqtt://localhost:1883';
+const BROKER_URL = process.env.MQTT_BROKER_URL || 'mqtt://localhost:1883';
 const NUM_DEVICES = 5;
 const LOCATION_INTERVAL = 1000; // 1 detik
 const SENSOR_INTERVAL = 2000;   // 2 detik
