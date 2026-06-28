@@ -14,9 +14,16 @@ async function migrate() {
   try {
     console.log('[Migrate] Running database migration...');
 
-    await pool.query(`CREATE EXTENSION IF NOT EXISTS postgis`);
-    await pool.query(`CREATE EXTENSION IF NOT EXISTS timescaledb`);
-    await pool.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
+    // Extensions: try each individually; some (postgis, timescaledb) may not be
+    // available on managed PostgreSQL like Railway. Failures here are non-fatal.
+    for (const ext of ['postgis', 'timescaledb', 'uuid-ossp']) {
+      try {
+        await pool.query(`CREATE EXTENSION IF NOT EXISTS "${ext}"`);
+        console.log(`[Migrate] Extension "${ext}" ready`);
+      } catch (err: any) {
+        console.warn(`[Migrate] Extension "${ext}" unavailable (non-fatal):`, err.message);
+      }
+    }
 
     // Users
     await pool.query(`
