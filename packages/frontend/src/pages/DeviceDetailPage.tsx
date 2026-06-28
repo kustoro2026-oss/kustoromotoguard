@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet';
 import L from 'leaflet';
+import LocateControl from '../components/map/LocateControl';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -299,7 +300,7 @@ export default function DeviceDetailPage() {
                   center={[currentLocation.latitude, currentLocation.longitude]}
                   zoom={15}
                   className="w-full h-full"
-                  zoomControl={false}
+                  zoomControl={true}
                 >
                   <TileLayer
                     attribution='&copy; OSM'
@@ -309,6 +310,7 @@ export default function DeviceDetailPage() {
                     position={[currentLocation.latitude, currentLocation.longitude]}
                     icon={markerIcon}
                   />
+                  <LocateControl />
                 </MapContainer>
               )}
             </div>
@@ -340,7 +342,7 @@ export default function DeviceDetailPage() {
                   center={locationPath[0]}
                   zoom={14}
                   className="w-full h-full"
-                  zoomControl={false}
+                  zoomControl={true}
                 >
                   <TileLayer
                     attribution='&copy; OSM'
@@ -348,6 +350,7 @@ export default function DeviceDetailPage() {
                   />
                   <Polyline positions={locationPath} color="#3b82f6" weight={3} opacity={0.8} />
                   <Marker position={locationPath[0]} icon={markerIcon} />
+                  <LocateControl />
                 </MapContainer>
               )}
             </div>

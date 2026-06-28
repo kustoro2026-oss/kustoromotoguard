@@ -6,6 +6,9 @@ import { api } from '../services/api';
 import { connectSocket, subscribeToFleet } from '../services/socket';
 import { useDeviceStore, Device, DeviceLocation } from '../store/deviceStore';
 import { useAuthStore } from '../store/authStore';
+import SearchControl from '../components/map/SearchControl';
+import LocateControl from '../components/map/LocateControl';
+import RoutingPanel from '../components/map/RoutingPanel';
 
 // Custom marker icons
 const onlineIcon = new L.DivIcon({
@@ -221,7 +224,7 @@ export default function DashboardPage() {
             center={[-6.2088, 106.8456]}
             zoom={13}
             className="w-full h-full"
-            zoomControl={false}
+            zoomControl={true}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/">OSM</a>'
@@ -229,6 +232,9 @@ export default function DashboardPage() {
             />
             <DeviceTrails locations={locations} />
             <FitBounds devices={devices} locations={locations} />
+            <SearchControl />
+            <LocateControl />
+            <RoutingPanel />
           </MapContainer>
 
           {/* Overlay when no live data */}
