@@ -7,6 +7,7 @@ import { config } from './config';
 import { MqttService } from './services/mqttService';
 import { SocketService } from './services/socketService';
 import { AudioService } from './services/audioService';
+import { DemoSimulatorService } from './services/demoSimulator';
 import authRoutes from './routes/auth';
 import deviceRoutes from './routes/devices';
 import alertRoutes from './routes/alerts';
@@ -29,6 +30,13 @@ async function main() {
   // MQTT
   const mqttService = new MqttService(socketService, audioService);
   await mqttService.connect();
+
+  // Demo simulator: auto-starts when no MQTT broker (e.g. Railway deployment)
+  let demoSimulator: DemoSimulatorService | null = null;
+  if (!config.mqtt.brokerUrl) {
+    demoSimulator = new DemoSimulatorService(socketService);
+    demoSimulator.start();
+  }
 
   // Expose services to routes via app.locals
   app.locals.mqttService = mqttService;
@@ -66,6 +74,7 @@ async function main() {
   // Graceful shutdown
   const shutdown = async () => {
     console.log('[Kustoro Backend] Shutting down...');
+    demoSimulator?.stop();
     await mqttService.disconnect();
     socketService.close();
     process.exit(0);
