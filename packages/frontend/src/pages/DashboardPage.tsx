@@ -9,6 +9,7 @@ import { useAuthStore } from '../store/authStore';
 import SearchControl from '../components/map/SearchControl';
 import LocateControl from '../components/map/LocateControl';
 import RoutingPanel from '../components/map/RoutingPanel';
+import SimulatorControl from '../components/SimulatorControl';
 
 // Compact motorcycle SVG icon for online devices
 const motoOnlineSvg = `
@@ -300,6 +301,9 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
+
+          {/* Simulator controls at the bottom */}
+          <SimulatorControl />
         </aside>
 
         {/* Map */}

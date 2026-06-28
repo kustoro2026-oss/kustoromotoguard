@@ -74,4 +74,17 @@ export const api = {
 
   markAlertRead: (id: string) =>
     request(`/alerts/${id}/read`, { method: 'PUT' }),
+
+  // Simulator control
+  simCommand: (params: {
+    deviceId: string;
+    action: string;
+    route?: string;
+    speed?: number;
+    multiplier?: number;
+  }) =>
+    request('/simulator/command', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    }),
 };

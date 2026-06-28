@@ -516,3 +516,312 @@ body {
     width: 260px !important;
   }
 }
+
+/* =============================================
+   Simulator Control Panel (Dashboard sidebar)
+   ============================================= */
+
+.sim-control {
+  border-top: 1px solid #1f2937;
+}
+
+.sim-control-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.sim-control-header:hover {
+  background: #111827;
+}
+
+.sim-control-body {
+  padding: 0 12px 12px;
+  animation: simSlideDown 0.2s ease;
+}
+@keyframes simSlideDown {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Toast */
+.sim-toast {
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  text-align: center;
+  animation: simFadeIn 0.2s ease;
+}
+@keyframes simFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.sim-toast-success {
+  background: #065f46;
+  color: #6ee7b7;
+  border: 1px solid #059669;
+}
+.sim-toast-error {
+  background: #7f1d1d;
+  color: #fca5a5;
+  border: 1px solid #dc2626;
+}
+
+/* Global actions row */
+.sim-global-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #1f2937;
+}
+
+/* Device card */
+.sim-device-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+.sim-device-card {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+.sim-device-card:hover {
+  border-color: #374151;
+}
+
+.sim-device-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Device expanded controls */
+.sim-device-controls {
+  padding: 4px 10px 10px;
+  border-top: 1px solid #1f2937;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: simSlideDown 0.15s ease;
+}
+
+.sim-control-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sim-label {
+  font-size: 10px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: 52px;
+  flex-shrink: 0;
+}
+
+/* Select dropdown */
+.sim-select {
+  flex: 1;
+  min-width: 0;
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 5px;
+  color: #d1d5db;
+  font-size: 11px;
+  padding: 5px 6px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.sim-select:focus {
+  border-color: #3b82f6;
+}
+.sim-select option {
+  background: #1f2937;
+  color: #d1d5db;
+}
+
+/* Range slider */
+.sim-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: #374151;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+}
+.sim-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #3b82f6;
+  border-radius: 50%;
+  border: 2px solid #1f2937;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.sim-range::-webkit-slider-thumb:hover {
+  background: #60a5fa;
+}
+.sim-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #3b82f6;
+  border-radius: 50%;
+  border: 2px solid #1f2937;
+  cursor: pointer;
+}
+
+/* Speed number input */
+.sim-speed-input {
+  width: 36px;
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  color: #f3f4f6;
+  font-size: 11px;
+  padding: 3px 4px;
+  text-align: center;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.sim-speed-input::-webkit-outer-spin-button,
+.sim-speed-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.sim-speed-input:focus {
+  border-color: #3b82f6;
+}
+
+/* Multiplier buttons */
+.sim-multiplier-btn {
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 500;
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.12s;
+  line-height: 1.4;
+}
+.sim-multiplier-btn:hover {
+  background: #374151;
+  color: #fff;
+  border-color: #3b82f6;
+}
+.sim-multiplier-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Action buttons row */
+.sim-actions-row {
+  display: flex;
+  gap: 4px;
+}
+
+/* Button base */
+.sim-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+.sim-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Button sizes */
+.sim-btn-xs {
+  padding: 3px 8px;
+  font-size: 10px;
+  flex: 1;
+}
+.sim-btn-sm {
+  padding: 4px 10px;
+  font-size: 10px;
+  flex: 1;
+}
+
+/* Button variants */
+.sim-btn-primary {
+  background: #1d4ed8;
+  color: #fff;
+  border-color: #2563eb;
+}
+.sim-btn-primary:hover:not(:disabled) {
+  background: #2563eb;
+}
+.sim-btn-warn {
+  background: #92400e;
+  color: #fbbf24;
+  border-color: #b45309;
+}
+.sim-btn-warn:hover:not(:disabled) {
+  background: #b45309;
+}
+.sim-btn-success {
+  background: #065f46;
+  color: #6ee7b7;
+  border-color: #047857;
+}
+.sim-btn-success:hover:not(:disabled) {
+  background: #047857;
+}
+.sim-btn-ghost {
+  background: transparent;
+  color: #9ca3af;
+  border-color: #374151;
+}
+.sim-btn-ghost:hover:not(:disabled) {
+  background: #1f2937;
+  color: #fff;
+}
+
+/* Responsive: mobile sidebar scroll */
+@media (max-width: 640px) {
+  .sim-device-list {
+    max-height: 280px;
+  }
+}
+
+/* Responsive: tight sidebar on tablet */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .sim-global-actions {
+    flex-direction: column;
+  }
+  .sim-actions-row {
+    flex-wrap: wrap;
+  }
+}

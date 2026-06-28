@@ -11,6 +11,7 @@ import { DemoSimulatorService } from './services/demoSimulator';
 import authRoutes from './routes/auth';
 import deviceRoutes from './routes/devices';
 import alertRoutes from './routes/alerts';
+import simulatorRoutes from './routes/simulator';
 
 async function main() {
   const app = express();
@@ -50,6 +51,7 @@ async function main() {
   app.use('/api/auth', authRoutes);
   app.use('/api/devices', deviceRoutes);
   app.use('/api/alerts', alertRoutes);
+  app.use('/api/simulator', simulatorRoutes);
 
   // Serve frontend static files (production: Docker, development: Vite dev server)
   const publicDir = path.join(__dirname, '..', 'public');

@@ -1,9 +1,16 @@
 {
   "name": "@kustoro/simulator",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
+  "description": "Realistic motorcycle fleet GPS simulator with smooth route interpolation",
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "dev:fast": "SIM_SPEED=3 tsx src/index.ts",
+    "dev:slow": "SIM_SPEED=0.5 tsx src/index.ts",
+    "dev:3": "SIM_DEVICES=3 tsx src/index.ts",
+    "dev:8": "SIM_DEVICES=8 tsx src/index.ts",
+    "dev:verbose": "SIM_VERBOSE=1 tsx src/index.ts",
+    "dev:quiet": "SIM_QUIET=1 tsx src/index.ts"
   },
   "dependencies": {
     "mqtt": "^5.10.0",
