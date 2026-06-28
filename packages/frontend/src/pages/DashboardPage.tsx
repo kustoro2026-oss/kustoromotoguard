@@ -115,6 +115,7 @@ export default function DashboardPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const unreadAlerts = alerts.filter((a) => !a.is_read).length;
   const onlineCount = devices.filter((d) => d.status === 'online').length;
@@ -160,12 +161,29 @@ export default function DashboardPage() {
     navigate('/login');
   }
 
+  function handleDeviceClick(deviceId: string) {
+    setSidebarOpen(false); // close sidebar on mobile
+    navigate(`/device/${deviceId}`);
+  }
+
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between shrink-0">
-        <h1 className="text-lg font-bold tracking-tight">Kustoro Fleet</h1>
-        <div className="flex items-center gap-4">
+      <header className="bg-gray-900 border-b border-gray-800 px-4 sm:px-6 py-3 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3">
+          {/* Hamburger — mobile only */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="md:hidden text-gray-400 hover:text-white transition-colors"
+            title="Open menu"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <h1 className="text-lg font-bold tracking-tight">Kustoro Fleet</h1>
+        </div>
+        <div className="flex items-center gap-3 sm:gap-4">
           {/* Alert badge */}
           <button
             onClick={() => navigate(`/device/alerts`)}
@@ -182,10 +200,10 @@ export default function DashboardPage() {
             )}
           </button>
 
-          <span className="text-sm text-gray-400">{user?.email}</span>
+          <span className="hidden sm:inline text-sm text-gray-400">{user?.email}</span>
           <button
             onClick={handleLogout}
-            className="text-sm text-gray-400 hover:text-white transition-colors"
+            className="text-sm text-gray-400 hover:text-white transition-colors whitespace-nowrap"
           >
             Logout
           </button>
@@ -193,9 +211,30 @@ export default function DashboardPage() {
       </header>
 
       {/* Main content: Map + Sidebar */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Device List Sidebar */}
-        <aside className="w-72 bg-gray-900 border-r border-gray-800 overflow-y-auto shrink-0">
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Mobile backdrop */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/60 z-40 md:hidden transition-opacity"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* Device List Sidebar
+            - Mobile (<md): fixed overlay, slides in from left, full height
+            - Tablet (md-lg): 240px wide, inline
+            - Desktop (≥lg): 288px wide, inline */}
+        <aside
+          className={`
+            w-72 md:w-60 lg:w-72
+            bg-gray-900 border-r border-gray-800
+            overflow-y-auto
+            shrink-0
+            max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50
+            max-md:transition-transform max-md:duration-300 max-md:ease-in-out
+            ${sidebarOpen ? 'max-md:translate-x-0' : 'max-md:-translate-x-full'}
+          `}
+        >
           <div className="p-4">
             <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">
               Vehicles
@@ -231,7 +270,7 @@ export default function DashboardPage() {
                 return (
                   <button
                     key={device.id}
-                    onClick={() => navigate(`/device/${device.id}`)}
+                    onClick={() => handleDeviceClick(device.id)}
                     className="w-full text-left p-3 rounded-lg hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-700"
                   >
                     <div className="flex items-center gap-2 mb-1">

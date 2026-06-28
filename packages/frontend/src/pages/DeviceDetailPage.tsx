@@ -240,32 +240,32 @@ export default function DeviceDetailPage() {
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/')} className="text-gray-400 hover:text-white">
+      <header className="bg-gray-900 border-b border-gray-800 px-4 sm:px-6 py-3 flex items-center justify-between shrink-0 gap-2">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+          <button onClick={() => navigate('/')} className="text-gray-400 hover:text-white shrink-0">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-lg font-bold">
+          <h1 className="text-base sm:text-lg font-bold truncate">
             {device?.name || 'Device'}
-            <span className={`ml-2 inline-block w-2 h-2 rounded-full ${device?.status === 'online' ? 'bg-green-500 pulse-dot' : 'bg-red-500'}`} />
+            <span className={`ml-2 inline-block w-2 h-2 rounded-full shrink-0 ${device?.status === 'online' ? 'bg-green-500 pulse-dot' : 'bg-red-500'}`} />
           </h1>
-          {device && <span className="text-sm text-gray-500">{device.plate_number} &middot; {device.vehicle_type}</span>}
+          {device && <span className="hidden sm:inline text-sm text-gray-500 truncate">{device.plate_number} &middot; {device.vehicle_type}</span>}
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-400">{user?.email}</span>
-          <button onClick={handleLogout} className="text-sm text-gray-400 hover:text-white">Logout</button>
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          <span className="hidden sm:inline text-sm text-gray-400">{user?.email}</span>
+          <button onClick={handleLogout} className="text-sm text-gray-400 hover:text-white whitespace-nowrap">Logout</button>
         </div>
       </header>
 
       {/* Tab Navigation */}
-      <nav className="bg-gray-900 border-b border-gray-800 px-6 flex gap-1 shrink-0">
+      <nav className="bg-gray-900 border-b border-gray-800 px-4 sm:px-6 flex gap-0 sm:gap-1 shrink-0 overflow-x-auto">
         {(['overview', 'history', 'audio'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors capitalize ${
+            className={`px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium transition-colors capitalize whitespace-nowrap ${
               activeTab === tab
                 ? 'text-white border-b-2 border-primary-500'
                 : 'text-gray-500 hover:text-gray-300'
@@ -279,7 +279,7 @@ export default function DeviceDetailPage() {
       {/* Content */}
       <div className="flex-1 overflow-auto">
         {activeTab === 'overview' && (
-          <div className="p-6 space-y-6">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
             {/* Gauges */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 flex flex-col items-center">
@@ -302,7 +302,7 @@ export default function DeviceDetailPage() {
             </div>
 
             {/* Mini Map */}
-            <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden h-64">
+            <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden h-48 sm:h-64 md:h-72">
               {currentLocation && (
                 <MapContainer
                   center={[currentLocation.latitude, currentLocation.longitude]}
@@ -326,11 +326,11 @@ export default function DeviceDetailPage() {
         )}
 
         {activeTab === 'history' && (
-          <div className="p-6 space-y-6">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
             {/* Speed Chart */}
             <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
               <h3 className="text-sm font-semibold text-gray-400 mb-4">Speed History (Last Hour)</h3>
-              <div className="h-64">
+              <div className="h-48 sm:h-64">
                 <Line data={speedChartData} options={chartOptions} />
               </div>
             </div>
@@ -338,13 +338,13 @@ export default function DeviceDetailPage() {
             {/* Fuel Chart */}
             <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
               <h3 className="text-sm font-semibold text-gray-400 mb-4">Fuel Level History (Last Hour)</h3>
-              <div className="h-64">
+              <div className="h-48 sm:h-64">
                 <Line data={fuelChartData} options={chartOptions} />
               </div>
             </div>
 
             {/* Route Map */}
-            <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden h-80">
+            <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden h-56 sm:h-80">
               {locationPath.length > 0 && (
                 <MapContainer
                   center={locationPath[0]}
@@ -366,7 +366,7 @@ export default function DeviceDetailPage() {
         )}
 
         {activeTab === 'audio' && (
-          <div className="p-6 space-y-6">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
             {/* Recording Controls */}
             <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
               <h3 className="text-sm font-semibold text-gray-400 mb-4">Audio Recording</h3>
@@ -415,7 +415,7 @@ export default function DeviceDetailPage() {
                   {recordings.map((rec: any) => (
                     <div
                       key={rec.id}
-                      className="flex items-center justify-between bg-gray-800/50 rounded-lg p-3 border border-gray-700/50"
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gray-800/50 rounded-lg p-3 border border-gray-700/50"
                     >
                       <div>
                         <p className="text-sm text-white">
@@ -427,7 +427,7 @@ export default function DeviceDetailPage() {
                       </div>
                       <audio
                         controls
-                        className="h-8"
+                        className="h-8 w-full sm:w-auto"
                         src={`/api/devices/${id}/audio/${rec.id}`}
                       >
                         Browser Anda tidak mendukung audio playback.

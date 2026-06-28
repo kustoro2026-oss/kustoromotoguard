@@ -433,7 +433,14 @@ body {
   font-size: 11px;
 }
 
-/* --- Leaflet zoom control override --- */
+/* --- Leaflet zoom control override (dark theme + reposition to RIGHT side) --- */
+/* Move the default zoom control from top-left (overlapping SearchControl)
+   to top-right, stacked below the Locate button. */
+.leaflet-top.leaflet-left {
+  left: auto !important;
+  right: 12px !important;
+  top: 56px !important; /* 12px gap + 40px locate button + 4px spacing */
+}
 .leaflet-control-zoom {
   border: none !important;
   box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
@@ -467,4 +474,45 @@ body {
 .moto-marker-icon {
   background: transparent !important;
   border: none !important;
+}
+
+/* =============================================
+   Responsive Map Controls
+   ============================================= */
+
+/* Mobile: search bar full-width, tighter spacing */
+@media (max-width: 640px) {
+  .map-search-control {
+    width: calc(100% - 16px) !important;
+    max-width: none !important;
+    top: 8px !important;
+    left: 8px !important;
+  }
+  .map-search-input {
+    font-size: 16px !important; /* prevents iOS zoom on focus */
+  }
+  .map-locate-control {
+    top: 8px !important;
+    right: 8px !important;
+  }
+  .leaflet-top.leaflet-left {
+    right: 8px !important;
+    top: 52px !important;
+  }
+  .map-routing-body {
+    width: calc(100vw - 32px) !important;
+    max-width: 320px !important;
+    max-height: 380px !important;
+  }
+  .map-routing-panel {
+    bottom: 8px !important;
+    left: 8px !important;
+  }
+}
+
+/* Tablet: medium search bar */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .map-search-control {
+    width: 260px !important;
+  }
 }
