@@ -470,10 +470,12 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* Motorcycle marker icons — prevent Leaflet default chrome */
+/* Motorcycle marker icons — prevent Leaflet default chrome
+   + smooth transform transition so markers glide instead of jumping */
 .moto-marker-icon {
   background: transparent !important;
   border: none !important;
+  transition: transform 0.9s linear !important;
 }
 
 /* =============================================
