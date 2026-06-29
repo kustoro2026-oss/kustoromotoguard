@@ -40,12 +40,14 @@ function SpeedGauge({ value, max = 120 }: { value: number; max?: number }) {
   const cx = 100;
   const cy = 110;
   const r = 80;
-  const startAngle = 225; // degrees (bottom-left, SVG coords)
-  const endAngle = -45;   // degrees (bottom-right via top, SVG coords)
-  const totalSweep = 270; // degrees of arc
+  // Arc sweeps clockwise from up-left (135°) through TOP (270°) to up-right (45°).
+  // SVG coords (y-down): 0°=right, 90°=down, 180°=left, 270°=up.
+  const startAngle = 135; // up-left
+  const totalSweep = 270; // degrees of arc (clockwise)
 
   const pct = Math.min(Math.max(value / max, 0), 1);
-  const needleAngleDeg = startAngle - pct * totalSweep;
+  // Clockwise = angle increases
+  const needleAngleDeg = startAngle + pct * totalSweep;
   const needleAngleRad = (needleAngleDeg * Math.PI) / 180;
 
   // Needle tip
@@ -66,7 +68,7 @@ function SpeedGauge({ value, max = 120 }: { value: number; max?: number }) {
   const ticks: { angle: number; label?: string; major: boolean }[] = [];
   for (let v = 0; v <= max; v += 10) {
     const tPct = v / max;
-    const tAngleDeg = startAngle - tPct * totalSweep;
+    const tAngleDeg = startAngle + tPct * totalSweep;
     ticks.push({ angle: tAngleDeg, label: v % 20 === 0 ? `${v}` : undefined, major: v % 20 === 0 });
   }
 
@@ -75,21 +77,21 @@ function SpeedGauge({ value, max = 120 }: { value: number; max?: number }) {
   const tickInnerMinor = r - 12;
   const labelRadius = r - 30;
 
-  // Build arc path for colored segments
+  // Build arc path for colored segments (clockwise, sweep-flag=1)
   function arcPath(fromPct: number, toPct: number): string {
-    const a1 = (startAngle - fromPct * totalSweep) * Math.PI / 180;
-    const a2 = (startAngle - toPct * totalSweep) * Math.PI / 180;
+    const a1 = (startAngle + fromPct * totalSweep) * Math.PI / 180;
+    const a2 = (startAngle + toPct * totalSweep) * Math.PI / 180;
     const x1 = cx + r * Math.cos(a1);
     const y1 = cy + r * Math.sin(a1);
     const x2 = cx + r * Math.cos(a2);
     const y2 = cy + r * Math.sin(a2);
     const large = (toPct - fromPct) * totalSweep > 180 ? 1 : 0;
-    return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 0 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+    return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
   }
 
   return (
-    <div className="relative w-44 h-44 sm:w-48 sm:h-48 mx-auto">
-      <svg viewBox="0 0 200 200" className="w-full h-full -mt-1">
+    <div className="relative w-full max-w-[9rem] sm:max-w-[12rem] mx-auto aspect-square">
+      <svg viewBox="0 0 200 200" className="w-full h-full">
         {/* Background track */}
         <path
           d={arcPath(0, 1)}
@@ -438,8 +440,8 @@ export default function DeviceDetailPage() {
           <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
             {/* Gauges */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 flex flex-col items-center">
-                <p className="text-xs text-gray-500 mb-2 uppercase tracking-wider">Speed</p>
+              <div className="bg-gray-900 rounded-xl p-3 sm:p-4 border border-gray-800 flex flex-col items-center">
+                <p className="text-xs text-gray-500 mb-1 sm:mb-2 uppercase tracking-wider">Speed</p>
                 <SpeedGauge value={currentLocation?.speed || currentSensors?.speed || 0} />
               </div>
               <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
