@@ -37,38 +37,194 @@ const markerIcon = new L.DivIcon({
 });
 
 function SpeedGauge({ value, max = 120 }: { value: number; max?: number }) {
-  const pct = Math.min(value / max, 1);
-  const angle = pct * 180;
+  const cx = 100;
+  const cy = 110;
+  const r = 80;
+  const startAngle = 225; // degrees (bottom-left, SVG coords)
+  const endAngle = -45;   // degrees (bottom-right via top, SVG coords)
+  const totalSweep = 270; // degrees of arc
+
+  const pct = Math.min(Math.max(value / max, 0), 1);
+  const needleAngleDeg = startAngle - pct * totalSweep;
+  const needleAngleRad = (needleAngleDeg * Math.PI) / 180;
+
+  // Needle tip
+  const needleLen = r - 12;
+  const nx = cx + needleLen * Math.cos(needleAngleRad);
+  const ny = cy + needleLen * Math.sin(needleAngleRad);
+
+  // Needle base (opposite side)
+  const baseLen = 12;
+  const bx = cx - baseLen * Math.cos(needleAngleRad);
+  const by = cy - baseLen * Math.sin(needleAngleRad);
+
+  // Color based on speed
   const color =
     pct < 0.5 ? '#22c55e' : pct < 0.75 ? '#f59e0b' : '#ef4444';
 
+  // --- Tick marks & labels ---
+  const ticks: { angle: number; label?: string; major: boolean }[] = [];
+  for (let v = 0; v <= max; v += 10) {
+    const tPct = v / max;
+    const tAngleDeg = startAngle - tPct * totalSweep;
+    ticks.push({ angle: tAngleDeg, label: v % 20 === 0 ? `${v}` : undefined, major: v % 20 === 0 });
+  }
+
+  const tickOuter = r - 5;
+  const tickInnerMajor = r - 18;
+  const tickInnerMinor = r - 12;
+  const labelRadius = r - 30;
+
+  // Build arc path for colored segments
+  function arcPath(fromPct: number, toPct: number): string {
+    const a1 = (startAngle - fromPct * totalSweep) * Math.PI / 180;
+    const a2 = (startAngle - toPct * totalSweep) * Math.PI / 180;
+    const x1 = cx + r * Math.cos(a1);
+    const y1 = cy + r * Math.sin(a1);
+    const x2 = cx + r * Math.cos(a2);
+    const y2 = cy + r * Math.sin(a2);
+    const large = (toPct - fromPct) * totalSweep > 180 ? 1 : 0;
+    return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 0 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+  }
+
   return (
-    <div className="relative w-32 h-20 mx-auto">
-      <svg viewBox="0 0 120 70" className="w-full h-full">
-        <path d="M 10 65 A 50 50 0 0 1 110 65" fill="none" stroke="#1f2937" strokeWidth="10" />
+    <div className="relative w-44 h-44 sm:w-48 sm:h-48 mx-auto">
+      <svg viewBox="0 0 200 200" className="w-full h-full -mt-1">
+        {/* Background track */}
         <path
-          d="M 10 65 A 50 50 0 0 1 110 65"
+          d={arcPath(0, 1)}
           fill="none"
-          stroke={color}
-          strokeWidth="10"
-          strokeDasharray={`${angle * 0.87} 180`}
+          stroke="#1f2937"
+          strokeWidth="9"
           strokeLinecap="round"
         />
+
+        {/* Colored progress arc — segmented green / yellow / red */}
+        {/* Green zone: 0 → 50% */}
+        {pct > 0 && (
+          <path
+            d={arcPath(0, Math.min(pct, 0.5))}
+            fill="none"
+            stroke="#22c55e"
+            strokeWidth="9"
+            strokeLinecap={pct <= 0.5 ? 'round' : 'butt'}
+          />
+        )}
+        {/* Yellow zone: 50% → 75% */}
+        {pct > 0.5 && (
+          <path
+            d={arcPath(0.5, Math.min(pct, 0.75))}
+            fill="none"
+            stroke="#f59e0b"
+            strokeWidth="9"
+            strokeLinecap={pct <= 0.75 ? 'round' : 'butt'}
+          />
+        )}
+        {/* Red zone: 75% → 100% */}
+        {pct > 0.75 && (
+          <path
+            d={arcPath(0.75, pct)}
+            fill="none"
+            stroke="#ef4444"
+            strokeWidth="9"
+            strokeLinecap="round"
+          />
+        )}
+
+        {/* Tick marks */}
+        {ticks.map((t) => {
+          const ta = (t.angle * Math.PI) / 180;
+          const inner = t.major ? tickInnerMajor : tickInnerMinor;
+          return (
+            <line
+              key={t.angle}
+              x1={cx + inner * Math.cos(ta)}
+              y1={cy + inner * Math.sin(ta)}
+              x2={cx + tickOuter * Math.cos(ta)}
+              y2={cy + tickOuter * Math.sin(ta)}
+              stroke={t.major ? '#9ca3af' : '#4b5563'}
+              strokeWidth={t.major ? 2 : 1}
+              strokeLinecap="round"
+            />
+          );
+        })}
+
+        {/* Labels */}
+        {ticks
+          .filter((t) => t.label)
+          .map((t) => {
+            const ta = (t.angle * Math.PI) / 180;
+            const lx = cx + labelRadius * Math.cos(ta);
+            const ly = cy + labelRadius * Math.sin(ta);
+            return (
+              <text
+                key={`lbl-${t.angle}`}
+                x={lx}
+                y={ly}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill="#9ca3af"
+                fontSize="9"
+                fontFamily="'Inter', system-ui, sans-serif"
+                fontWeight={500}
+              >
+                {t.label}
+              </text>
+            );
+          })}
+
         {/* Needle */}
         <line
-          x1="60" y1="65"
-          x2={60 + 40 * Math.cos((180 - angle) * Math.PI / 180)}
-          y2={65 - 40 * Math.sin((180 - angle) * Math.PI / 180)}
-          stroke="white"
-          strokeWidth="2"
+          x1={bx}
+          y1={by}
+          x2={nx}
+          y2={ny}
+          stroke={color}
+          strokeWidth="2.5"
           strokeLinecap="round"
         />
-        <circle cx="60" cy="65" r="3" fill="white" />
+        {/* Needle inner shadow (makes it look 3D) */}
+        <line
+          x1={cx}
+          y1={cy}
+          x2={nx}
+          y2={ny}
+          stroke="rgba(0,0,0,0.3)"
+          strokeWidth="1"
+          strokeLinecap="round"
+        />
+
+        {/* Center hub */}
+        <circle cx={cx} cy={cy} r="8" fill="#1f2937" stroke="#4b5563" strokeWidth="1.5" />
+        <circle cx={cx} cy={cy} r="3.5" fill={color} />
+
+        {/* Digital speed readout in center */}
+        <text
+          x={cx}
+          y={cy + 30}
+          textAnchor="middle"
+          dominantBaseline="central"
+          fill={color}
+          fontSize="26"
+          fontFamily="'Inter', system-ui, sans-serif"
+          fontWeight="bold"
+        >
+          {Math.round(value)}
+        </text>
+        <text
+          x={cx}
+          y={cy + 48}
+          textAnchor="middle"
+          dominantBaseline="central"
+          fill="#6b7280"
+          fontSize="10"
+          fontFamily="'Inter', system-ui, sans-serif"
+          fontWeight={500}
+          letterSpacing="1"
+        >
+          km/h
+        </text>
       </svg>
-      <div className="absolute bottom-0 left-0 right-0 text-center">
-        <span className="text-xl font-bold" style={{ color }}>{Math.round(value)}</span>
-        <span className="text-xs text-gray-500 ml-1">km/h</span>
-      </div>
     </div>
   );
 }
@@ -238,9 +394,9 @@ export default function DeviceDetailPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-dvh flex flex-col">
       {/* Header */}
-      <header className="bg-gray-900 border-b border-gray-800 px-4 sm:px-6 py-3 flex items-center justify-between shrink-0 gap-2">
+      <header className="bg-gray-900 border-b border-gray-800 px-4 sm:px-6 py-3 flex items-center justify-between shrink-0 gap-2 relative z-10">
         <div className="flex items-center gap-2 sm:gap-4 min-w-0">
           <button onClick={() => navigate('/')} className="text-gray-400 hover:text-white shrink-0">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

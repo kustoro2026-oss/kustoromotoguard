@@ -8,11 +8,25 @@
   display: inline !important;
 }
 
-/* Undo universal resets on Leaflet internal elements */
-.leaflet-container * {
+/* Undo universal resets on Leaflet internal elements ONLY.
+   Target Leaflet's own panes, tiles, layers — NOT custom React controls. */
+.leaflet-pane,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-tile-container,
+.leaflet-pane > svg,
+.leaflet-pane > canvas,
+.leaflet-zoom-box,
+.leaflet-image-layer,
+.leaflet-layer,
+.leaflet-control,
+.leaflet-control *,
+.leaflet-popup,
+.leaflet-popup *,
+.leaflet-tooltip,
+.leaflet-tooltip * {
   box-sizing: content-box;
-  margin: initial;
-  padding: initial;
 }
 
 .leaflet-pane,
@@ -32,6 +46,8 @@
 
 .leaflet-container {
   overflow: hidden;
+  /* Prevent mobile browser gestures from interfering with map interaction */
+  touch-action: manipulation;
 }
 
 .leaflet-tile,
@@ -60,9 +76,16 @@
   box-sizing: border-box;
 }
 
+html, body {
+  overscroll-behavior: none; /* prevent pull-to-refresh from breaking map gestures */
+  -webkit-overflow-scrolling: touch;
+  /* Use dynamic viewport height so mobile browser chrome doesn't shift layout */
+  height: 100dvh;
+  overflow: hidden;
+}
+
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  min-height: 100vh;
   background: #030712;
 }
 

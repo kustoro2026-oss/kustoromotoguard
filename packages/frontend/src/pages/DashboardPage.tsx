@@ -168,9 +168,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-dvh flex flex-col">
       {/* Header */}
-      <header className="bg-gray-900 border-b border-gray-800 px-4 sm:px-6 py-3 flex items-center justify-between shrink-0">
+      <header className="bg-gray-900 border-b border-gray-800 px-4 sm:px-6 py-3 flex items-center justify-between shrink-0 relative z-10">
         <div className="flex items-center gap-3">
           {/* Hamburger — mobile only */}
           <button
