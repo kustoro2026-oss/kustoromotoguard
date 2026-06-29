@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import DeviceDetailPage from './pages/DeviceDetailPage';
+import ManageDevicesPage from './pages/ManageDevicesPage';
 import { useAuthStore } from './store/authStore';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -47,6 +48,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <DeviceDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/devices/manage"
+          element={
+            <ProtectedRoute>
+              <ManageDevicesPage />
             </ProtectedRoute>
           }
         />

@@ -191,4 +191,125 @@ router.post('/:id/audio/record', authMiddleware, async (req: AuthRequest, res: R
   }
 });
 
+// POST /api/devices — Create a new device
+router.post('/', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { name, plate_number, vehicle_type, device_token } = req.body;
+
+    if (!name || !device_token) {
+      res.status(400).json({ error: 'name and device_token are required' });
+      return;
+    }
+
+    const id = uuidv4();
+    const result = await query(
+      `INSERT INTO devices (id, name, plate_number, device_token, vehicle_type)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, name, plate_number, device_token, vehicle_type, is_active, status, last_seen_at, created_at`,
+      [id, name, plate_number || null, device_token, vehicle_type || null]
+    );
+
+    const device = result.rows[0];
+
+    // Notify simulator of new device via MQTT (if available)
+    try {
+      const mqttService = req.app.locals.mqttService;
+      if (mqttService) {
+        mqttService.publishCommand('all', 'sim/all/command', JSON.stringify({
+          action: 'add_device',
+          device: { id, name, plate_number: plate_number || '', vehicle_type: vehicle_type || '', device_token },
+        }));
+      }
+    } catch { /* non-critical */ }
+
+    res.status(201).json({ device });
+  } catch (err: any) {
+    console.error('[Devices] Create error:', err);
+    if (err.code === '23505') {
+      res.status(409).json({ error: 'Device token already exists' });
+      return;
+    }
+    handleDbError(err, res);
+  }
+});
+
+// PUT /api/devices/:id — Update a device
+router.put('/:id', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { name, plate_number, vehicle_type, device_token, is_active } = req.body;
+
+    // Check device exists
+    const existing = await query('SELECT id FROM devices WHERE id = $1', [id]);
+    if (existing.rows.length === 0) {
+      res.status(404).json({ error: 'Device not found' });
+      return;
+    }
+
+    // Build dynamic UPDATE
+    const fields: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    if (name !== undefined) { fields.push(`name = $${idx++}`); values.push(name); }
+    if (plate_number !== undefined) { fields.push(`plate_number = $${idx++}`); values.push(plate_number); }
+    if (vehicle_type !== undefined) { fields.push(`vehicle_type = $${idx++}`); values.push(vehicle_type); }
+    if (device_token !== undefined) { fields.push(`device_token = $${idx++}`); values.push(device_token); }
+    if (is_active !== undefined) { fields.push(`is_active = $${idx++}`); values.push(is_active); }
+
+    if (fields.length === 0) {
+      res.status(400).json({ error: 'No fields to update' });
+      return;
+    }
+
+    values.push(id);
+    const result = await query(
+      `UPDATE devices SET ${fields.join(', ')} WHERE id = $${idx}
+       RETURNING id, name, plate_number, device_token, vehicle_type, is_active, status, last_seen_at, created_at`,
+      values
+    );
+
+    res.json({ device: result.rows[0] });
+  } catch (err: any) {
+    console.error('[Devices] Update error:', err);
+    if (err.code === '23505') {
+      res.status(409).json({ error: 'Device token already exists' });
+      return;
+    }
+    handleDbError(err, res);
+  }
+});
+
+// DELETE /api/devices/:id — Delete a device (cascades to locations/sensors/alerts/audio)
+router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const existing = await query('SELECT id, name FROM devices WHERE id = $1', [id]);
+    if (existing.rows.length === 0) {
+      res.status(404).json({ error: 'Device not found' });
+      return;
+    }
+
+    // Cascade deletes happen automatically via DB foreign keys with ON DELETE CASCADE
+    await query('DELETE FROM devices WHERE id = $1', [id]);
+
+    // Notify simulator to remove device via MQTT (if available)
+    try {
+      const mqttService = req.app.locals.mqttService;
+      if (mqttService) {
+        mqttService.publishCommand('all', 'sim/all/command', JSON.stringify({
+          action: 'remove_device',
+          device_id: id,
+        }));
+      }
+    } catch { /* non-critical */ }
+
+    res.json({ success: true, message: `Device '${existing.rows[0].name}' deleted` });
+  } catch (err) {
+    console.error('[Devices] Delete error:', err);
+    handleDbError(err, res);
+  }
+});
+
 export default router;

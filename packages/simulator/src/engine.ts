@@ -41,7 +41,7 @@ export interface DeviceState {
   tripDistanceM: number;   // current trip distance
 }
 
-const DEFAULT_SPEEDS_KMH = [35, 45, 50, 30, 55, 40, 60, 25];
+export const DEFAULT_SPEEDS_KMH = [35, 45, 50, 30, 55, 40, 60, 25];
 
 /**
  * Advance a device along its route by one tick.

@@ -9,7 +9,7 @@
 import mqtt from 'mqtt';
 import { v4 as uuidv4 } from 'uuid';
 import { ROUTES, getRouteById } from './routes';
-import { DeviceState, tickDevice, createDevice, formatDistance } from './engine';
+import { DeviceState, tickDevice, createDevice, formatDistance, DEFAULT_SPEEDS_KMH } from './engine';
 
 // ═══════════════════════════════════════════════
 // Configuration (env vars with defaults)
@@ -239,10 +239,18 @@ async function main() {
 // ═══════════════════════════════════════════════
 
 interface SimCommand {
-  action: 'set_route' | 'set_speed' | 'set_multiplier' | 'refuel' | 'reset' | 'pause' | 'resume' | 'status' | 'list_routes';
+  action: 'set_route' | 'set_speed' | 'set_multiplier' | 'refuel' | 'reset' | 'pause' | 'resume' | 'status' | 'list_routes' | 'add_device' | 'remove_device';
   route?: string;
   speed?: number;
   multiplier?: number;
+  device?: {
+    id: string;
+    name: string;
+    plate_number?: string;
+    vehicle_type?: string;
+    device_token: string;
+  };
+  device_id?: string;
 }
 
 function handleSimCommand(
@@ -334,6 +342,53 @@ function handleSimCommand(
       ROUTES.forEach((r) => {
         log(`  ${r.id.padEnd(22)} ${r.label}`);
       });
+      break;
+    }
+
+    case 'add_device': {
+      if (!cmd.device) {
+        log('⚠️  add_device requires device info in payload');
+        break;
+      }
+      const existing = devices.find((d) => d.id === cmd.device!.id);
+      if (existing) {
+        log(`⚠️  Device ${cmd.device!.name} (${cmd.device!.id}) already exists, skipping`);
+        break;
+      }
+      // Pick a random route for the new device
+      const routeIds = ROUTES.map((r) => r.id);
+      const randomRoute = routeIds[Math.floor(Math.random() * routeIds.length)];
+      const newDev = createDevice(
+        cmd.device.id,
+        cmd.device.name,
+        cmd.device.plate_number || '—',
+        cmd.device.vehicle_type || 'Motor',
+        cmd.device.device_token,
+        randomRoute,
+        DEFAULT_SPEEDS_KMH[Math.floor(Math.random() * DEFAULT_SPEEDS_KMH.length)],
+        1.0,
+      );
+      devices.push(newDev);
+      // Subscribe to MQTT command topics for this device
+      if (client) {
+        client.subscribe(`cmd/${newDev.id}/#`, { qos: 1 });
+      }
+      log(`➕ Device added: ${newDev.name} (${newDev.id.slice(0, 8)}…) on route ${randomRoute}`);
+      break;
+    }
+
+    case 'remove_device': {
+      if (!cmd.device_id) {
+        log('⚠️  remove_device requires device_id in payload');
+        break;
+      }
+      const idx = devices.findIndex((d) => d.id === cmd.device_id);
+      if (idx === -1) {
+        log(`⚠️  Device ${cmd.device_id} not found`);
+        break;
+      }
+      const removed = devices.splice(idx, 1)[0];
+      log(`➖ Device removed: ${removed.name} (${removed.id.slice(0, 8)}…)`);
       break;
     }
 

@@ -42,6 +42,15 @@ export const api = {
 
   getDevice: (id: string) => request(`/devices/${id}`),
 
+  createDevice: (data: { name: string; plate_number?: string; vehicle_type?: string; device_token: string }) =>
+    request('/devices', { method: 'POST', body: JSON.stringify(data) }),
+
+  updateDevice: (id: string, data: { name?: string; plate_number?: string; vehicle_type?: string; device_token?: string; is_active?: boolean }) =>
+    request(`/devices/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  deleteDevice: (id: string) =>
+    request(`/devices/${id}`, { method: 'DELETE' }),
+
   getDeviceLocations: (id: string, from?: string, to?: string) => {
     const params = new URLSearchParams();
     if (from) params.set('from', from);

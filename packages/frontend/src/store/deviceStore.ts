@@ -46,6 +46,9 @@ interface DeviceState {
   selectedDeviceId: string | null;
 
   setDevices: (devices: Device[]) => void;
+  addDevice: (device: Device) => void;
+  removeDevice: (deviceId: string) => void;
+  updateDevice: (deviceId: string, updates: Partial<Device>) => void;
   updateLocation: (location: DeviceLocation) => void;
   updateSensors: (sensors: DeviceSensors) => void;
   updateDeviceStatus: (deviceId: string, status: 'online' | 'offline') => void;
@@ -63,6 +66,23 @@ export const useDeviceStore = create<DeviceState>((set) => ({
   selectedDeviceId: null,
 
   setDevices: (devices) => set({ devices }),
+
+  addDevice: (device) =>
+    set((state) => ({
+      devices: [...state.devices, device],
+    })),
+
+  removeDevice: (deviceId) =>
+    set((state) => ({
+      devices: state.devices.filter((d) => d.id !== deviceId),
+    })),
+
+  updateDevice: (deviceId, updates) =>
+    set((state) => ({
+      devices: state.devices.map((d) =>
+        d.id === deviceId ? { ...d, ...updates } : d
+      ),
+    })),
 
   updateLocation: (location) =>
     set((state) => ({
